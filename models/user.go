@@ -1,7 +1,6 @@
 package models
 
 import (
-	"github.com/google/uuid"
 	"time"
 )
 
@@ -18,7 +17,7 @@ const (
 
 type (
 	Users struct {
-		Id         uuid.UUID `json:"id" gorm:"column:id;primaryKey;index"`
+		Id         string    `json:"id" gorm:"column:id;primaryKey;index"`
 		Email      string    `json:"email" gorm:"column:email;size:255;index:unique_email,unique,where:archived_at is not null"`
 		Password   string    `json:"password" gorm:"column:password;size:255"`
 		Address    []Address `gorm:"foreignKey:UserId;references:Id"`
@@ -28,11 +27,11 @@ type (
 	}
 
 	UserRole struct {
-		Id         uuid.UUID `json:"id" gorm:"column:id;primaryKey;index"`
-		UserId     uuid.UUID `json:"user_id"`
+		Id         string    `json:"id" gorm:"column:id;primaryKey;index"`
+		UserId     string    `json:"user_id"`
 		User       Users     `gorm:"foreignKey:UserId"`
 		Role       Roles     `gorm:"type:role_type"`
-		CreatedBy  uuid.UUID `json:"created_by" gorm:"created_by"`
+		CreatedBy  string    `json:"created_by" gorm:"created_by"`
 		Created    Users     `gorm:"foreignKey:UserId"`
 		CreatedAt  time.Time `json:"created_at" gorm:"column:created_at;default:current_timestamp"`
 		UpdatedAt  time.Time `json:"updated_at" gorm:"column:updated_at;default:current_timestamp"`
@@ -40,8 +39,8 @@ type (
 	}
 
 	Address struct {
-		Id         uuid.UUID `json:"id" gorm:"column:id;primaryKey;index"`
-		UserId     uuid.UUID `json:"user_id"`
+		Id         string    `json:"id" gorm:"column:id;primaryKey;index"`
+		UserId     string    `json:"user_id"`
 		Area       string    `json:"area" gorm:"column:area"`
 		City       string    `json:"city" gorm:"column:city"`
 		State      string    `json:"state" gorm:"column:state"`
@@ -54,8 +53,8 @@ type (
 	}
 
 	Session struct {
-		ID        uuid.UUID `json:"id" gorm:"column:id;primaryKey;index"`
-		UserId    uuid.UUID `json:"user_id"`
+		ID        string    `json:"id" gorm:"column:id;primaryKey;index"`
+		UserId    string    `json:"user_id"`
 		StartedAt time.Time `json:"started_at" gorm:"column:started_at;default:current_timestamp"`
 		EndedAt   time.Time `json:"ended_at" gorm:"default:null"`
 		User      Users     `gorm:"foreignKey:UserId"`

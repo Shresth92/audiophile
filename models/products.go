@@ -1,13 +1,12 @@
 package models
 
 import (
-	"github.com/google/uuid"
 	"time"
 )
 
 type (
 	Category struct {
-		Id           uuid.UUID `json:"id" gorm:"column:id;index"`
+		Id           string    `json:"id" gorm:"column:id;index"`
 		CategoryName string    `json:"categoryName" gorm:"column:category_name"`
 		CreatedAt    time.Time `json:"createdAt" gorm:"column:created_at;default:current_timestamp"`
 		UpdatedAt    time.Time `json:"updatedAt" gorm:"column:updated_at;default:current_timestamp"`
@@ -15,7 +14,7 @@ type (
 	}
 
 	Brand struct {
-		Id         uuid.UUID `json:"id" gorm:"column:id;primaryKey;index"`
+		Id         string    `json:"id" gorm:"column:id;primaryKey;index"`
 		BrandName  string    `json:"brandName" gorm:"column:brand_name"`
 		CreatedAt  time.Time `json:"createdAt" gorm:"column:created_at;default:current_timestamp"`
 		UpdatedAt  time.Time `json:"updatedAt" gorm:"column:updated_at;default:current_timestamp"`
@@ -23,12 +22,12 @@ type (
 	}
 
 	Product struct {
-		Id          uuid.UUID `json:"id" gorm:"column:id;primaryKey;index"`
+		Id          string    `json:"id" gorm:"column:id;primaryKey;index"`
 		ProductName string    `json:"productName" gorm:"column:product_name"`
 		ModelName   string    `json:"modelName" gorm:"column:model_name"`
-		BrandId     uuid.UUID `json:"brandId" gorm:"column:brand_id"`
+		BrandId     string    `json:"brandId" gorm:"column:brand_id"`
 		Brand       Brand     `gorm:"foreignKey:BrandId"`
-		CategoryId  uuid.UUID `json:"categoryId"`
+		CategoryId  string    `json:"categoryId"`
 		Category    Category  `gorm:"column:category_id;foreignKey:CategoryId"`
 		Return      int       `json:"return" gorm:"column:return"`
 		Warranty    int       `json:"warranty"  gorm:"column:warranty"`
@@ -39,8 +38,8 @@ type (
 	}
 
 	Variants struct {
-		Id         uuid.UUID `json:"id" gorm:"column:id;primaryKey;index"`
-		ProductId  uuid.UUID `json:"productId"`
+		Id         string    `json:"id" gorm:"column:id;primaryKey;index"`
+		ProductId  string    `json:"productId"`
 		Product    Product   `gorm:"column:product_id;foreignKey:ProductId"`
 		Colour     string    `json:"colour" gorm:"column:colour"`
 		Price      int       `json:"price" gorm:"column:price"`
@@ -51,7 +50,7 @@ type (
 	}
 
 	Offer struct {
-		Id          uuid.UUID `json:"id" gorm:"column:id;primaryKey;index"`
+		Id          string    `json:"id" gorm:"column:id;primaryKey;index"`
 		OfferName   string    `json:"offerName" gorm:"column:offer_name"`
 		Percent     int       `json:"percent" gorm:"column:percent"`
 		MaxDiscount int       `json:"maxDiscount" gorm:"column:max_discount"`
@@ -64,7 +63,7 @@ type (
 	}
 
 	Images struct {
-		Id         uuid.UUID `json:"id" gorm:"column:id;primaryKey;index"`
+		Id         string    `json:"id" gorm:"column:id;primaryKey;index"`
 		BucketName string    `json:"bucketName" gorm:"column:bucket_name"`
 		Path       string    `json:"path" gorm:"column:path"`
 		CreatedAt  time.Time `json:"createdAt" gorm:"column:created_at;default:current_timestamp"`
@@ -73,10 +72,10 @@ type (
 	}
 
 	VariantImages struct {
-		Id         uuid.UUID `json:"id" gorm:"column:id;primaryKey;index"`
-		ImageId    uuid.UUID `json:"imageId"`
+		Id         string    `json:"id" gorm:"column:id;primaryKey;index"`
+		ImageId    string    `json:"imageId"`
 		Images     Images    `gorm:"column:image_id;foreignKey:ImageId"`
-		VariantId  uuid.UUID `json:"variantId"`
+		VariantId  string    `json:"variantId"`
 		Variant    Variants  `gorm:"column:variant_id;foreignKey:VariantId"`
 		CreatedAt  time.Time `json:"createdAt" gorm:"column:created_at;default:current_timestamp"`
 		UpdatedAt  time.Time `json:"updatedAt" gorm:"column:updated_at;default:current_timestamp"`
@@ -84,33 +83,33 @@ type (
 	}
 
 	AllProducts struct {
-		Id           uuid.UUID `json:"variantId"`
-		ProductName  string    `json:"productName"`
-		ModelName    string    `json:"modelName"`
-		BrandName    string    `json:"brandName"`
-		CategoryName string    `json:"categoryName"`
-		Return       int       `json:"return"`
-		Warranty     int       `json:"warranty"`
-		Wireless     bool      `json:"wireless"`
-		Colour       string    `json:"colour"`
-		Price        int       `json:"price"`
-		Stock        int       `json:"stock"`
-		BucketName   string    `json:"bucketName"`
-		Path         string    `json:"path"`
+		VariantID    string `json:"variantId"`
+		ProductName  string `json:"productName"`
+		ModelName    string `json:"modelName"`
+		BrandName    string `json:"brandName"`
+		CategoryName string `json:"categoryName"`
+		Return       int    `json:"return"`
+		Warranty     int    `json:"warranty"`
+		Wireless     bool   `json:"wireless"`
+		Colour       string `json:"colour"`
+		Price        int    `json:"price"`
+		Stock        int    `json:"stock"`
+		BucketName   string `json:"bucketName"`
+		Path         string `json:"path"`
 	}
 
 	ProductBody struct {
-		ProductName string    `json:"productName"`
-		ModelName   string    `json:"modelName"`
-		BrandID     uuid.UUID `json:"brandId"`
-		CategoryID  uuid.UUID `json:"categoryId"`
-		Return      int       `json:"return"`
-		Warranty    int       `json:"warranty"`
-		Wireless    bool      `json:"wireless"`
-		Colour      string    `json:"colour"`
-		Price       int       `json:"price"`
-		Stock       int       `json:"stock"`
-		ImageIds    []string  `json:"imageIds"`
+		ProductName string   `json:"productName"`
+		ModelName   string   `json:"modelName"`
+		BrandID     string   `json:"brandId"`
+		CategoryID  string   `json:"categoryId"`
+		Return      int      `json:"return"`
+		Warranty    int      `json:"warranty"`
+		Wireless    bool     `json:"wireless"`
+		Colour      string   `json:"colour"`
+		Price       int      `json:"price"`
+		Stock       int      `json:"stock"`
+		ImageIds    []string `json:"imageIds"`
 	}
 
 	VariantBody struct {
@@ -121,17 +120,17 @@ type (
 	}
 
 	Products struct {
-		Id           uuid.UUID `json:"variantId"`
-		ProductName  string    `json:"productName"`
-		ModelName    string    `json:"modelName"`
-		BrandName    string    `json:"brandName"`
-		CategoryName string    `json:"categoryName"`
-		Return       int       `json:"return"`
-		Warranty     int       `json:"warranty"`
-		Wireless     bool      `json:"wireless"`
-		Colour       string    `json:"colour"`
-		Price        int       `json:"price"`
-		Stock        int       `json:"stock"`
-		ImageLinks   []string  `json:"imageLinks"`
+		Id           string   `json:"variantId"`
+		ProductName  string   `json:"productName"`
+		ModelName    string   `json:"modelName"`
+		BrandName    string   `json:"brandName"`
+		CategoryName string   `json:"categoryName"`
+		Return       int      `json:"return"`
+		Warranty     int      `json:"warranty"`
+		Wireless     bool     `json:"wireless"`
+		Colour       string   `json:"colour"`
+		Price        int      `json:"price"`
+		Stock        int      `json:"stock"`
+		ImageLinks   []string `json:"imageLinks"`
 	}
 )

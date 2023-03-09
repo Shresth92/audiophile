@@ -1,29 +1,36 @@
-package dbHelpers
+package admin
 
 import (
-	"github.com/Shresth92/audiophile/database"
+	"github.com/Shresth92/audiophile/internal"
 	"github.com/Shresth92/audiophile/models"
 	"github.com/google/uuid"
-	"gorm.io/gorm"
 	"time"
 )
 
-func UploadImageFirebase(bucket string, imagePath string) (uuid.UUID, error) {
-	imageId := uuid.New()
+type repository struct {
+	*internal.Database
+}
+
+func newCartRepository(db *internal.Database) *repository {
+	return &repository{Database: db}
+}
+
+func (r *repository) uploadImageFirebase(bucket string, imagePath string) (string, error) {
+	imageId := uuid.New().String()
 	image := models.Images{
 		Id:         imageId,
 		BucketName: bucket,
 		Path:       imagePath,
 	}
-	err := database.Db.
+	err := r.Database.DB.
 		Model(&models.Images{}).
 		Create(&image).
 		Error
 	return imageId, err
 }
 
-func CreateProduct(tx *gorm.DB, product *models.ProductBody) (uuid.UUID, error) {
-	productId := uuid.New()
+func (r *repository) createProduct(product *models.ProductBody) (string, error) {
+	productId := uuid.New().String()
 	productInstance := models.Product{
 		Id:          productId,
 		ProductName: product.ProductName,
@@ -34,41 +41,41 @@ func CreateProduct(tx *gorm.DB, product *models.ProductBody) (uuid.UUID, error) 
 		Warranty:    product.Warranty,
 		Wireless:    product.Wireless,
 	}
-	err := tx.
+	err := r.Database.DB.
 		Model(&models.Product{}).
 		Create(&productInstance).
 		Error
 	return productId, err
 }
 
-func CreateCategory(categoryName string) (uuid.UUID, error) {
-	categoryId := uuid.New()
+func (r *repository) createCategory(categoryName string) error {
+	categoryId := uuid.New().String()
 	category := models.Category{
 		Id:           categoryId,
 		CategoryName: categoryName,
 	}
-	err := database.Db.
+	err := r.Database.DB.
 		Model(&models.Category{}).
 		Create(&category).
 		Error
-	return categoryId, err
+	return err
 }
 
-func CreateBrand(brandName string) (uuid.UUID, error) {
-	brandId := uuid.New()
+func (r *repository) createBrand(brandName string) error {
+	brandId := uuid.New().String()
 	brand := models.Brand{
 		Id:        brandId,
 		BrandName: brandName,
 	}
-	err := database.Db.
+	err := r.Database.DB.
 		Model(&models.Brand{}).
 		Create(&brand).
 		Error
-	return brandId, err
+	return err
 }
 
-func CreateOffer(newOffer *models.Offer) (uuid.UUID, error) {
-	offerId := uuid.New()
+func (r *repository) createOffer(newOffer *models.Offer) error {
+	offerId := uuid.New().String()
 	offer := models.Offer{
 		Id:          offerId,
 		OfferName:   newOffer.OfferName,
@@ -78,15 +85,15 @@ func CreateOffer(newOffer *models.Offer) (uuid.UUID, error) {
 		Validity:    newOffer.Validity,
 		Description: newOffer.Description,
 	}
-	err := database.Db.
+	err := r.Database.DB.
 		Model(&models.Offer{}).
 		Create(&offer).
 		Error
-	return offerId, err
+	return err
 }
 
-func CreateVariant(tx *gorm.DB, productId uuid.UUID, colour string, stock int, price int) (uuid.UUID, error) {
-	variantId := uuid.New()
+func (r *repository) createVariant(productId string, colour string, stock int, price int) (string, error) {
+	variantId := uuid.New().String()
 	variant := models.Variants{
 		Id:        variantId,
 		ProductId: productId,
@@ -94,35 +101,33 @@ func CreateVariant(tx *gorm.DB, productId uuid.UUID, colour string, stock int, p
 		Stock:     stock,
 		Price:     price,
 	}
-	err := tx.
+	err := r.Database.DB.
 		Model(&models.Variants{}).
 		Create(&variant).Error
 	return variantId, err
 }
 
-func UploadVariantImages(tx *gorm.DB, variantId uuid.UUID, imageIds []string) ([]uuid.UUID, error) {
+func (r *repository) uploadVariantImages(variantId string, imageIds []string) error {
 	var variantImageArray []models.VariantImages
-	var variantImageIds []uuid.UUID
 	for _, imageId := range imageIds {
-		variantImageId := uuid.New()
-		variantImageIds = append(variantImageIds, variantImageId)
+		variantImageId := uuid.New().String()
 		imageStruct := models.VariantImages{
 			Id:        variantImageId,
 			VariantId: variantId,
-			ImageId:   uuid.MustParse(imageId),
+			ImageId:   imageId,
 		}
 		variantImageArray = append(variantImageArray, imageStruct)
 	}
 
-	err := tx.
+	err := r.Database.DB.
 		Model(&models.VariantImages{}).
 		Create(&variantImageArray).
 		Error
-	return variantImageIds, err
+	return err
 }
 
-func DeleteVariant(productId uuid.UUID, variantId uuid.UUID) error {
-	err := database.Db.
+func (r *repository) deleteVariant(productId string, variantId string) error {
+	err := r.Database.DB.
 		Model(&models.Variants{}).
 		Where("id = ? and product_id = ? and archived_at is null", variantId, productId).
 		Update("archived_at", time.Now()).
@@ -130,8 +135,8 @@ func DeleteVariant(productId uuid.UUID, variantId uuid.UUID) error {
 	return err
 }
 
-func DeleteProduct(productId uuid.UUID) error {
-	err := database.Db.
+func (r *repository) deleteProduct(productId string) error {
+	err := r.Database.DB.
 		Model(&models.Product{}).
 		Where("id = ? and archived_at is null", productId).
 		Update("archived_at", time.Now()).
@@ -139,8 +144,8 @@ func DeleteProduct(productId uuid.UUID) error {
 	return err
 }
 
-func DeleteCategory(categoryId uuid.UUID) error {
-	err := database.Db.
+func (r *repository) deleteCategory(categoryId string) error {
+	err := r.Database.DB.
 		Model(&models.Category{}).
 		Where("id = ? and archived_at is null", categoryId).
 		Update("archived_at", time.Now()).
@@ -148,8 +153,8 @@ func DeleteCategory(categoryId uuid.UUID) error {
 	return err
 }
 
-func DeleteBrand(brandId uuid.UUID) error {
-	err := database.Db.
+func (r *repository) deleteBrand(brandId string) error {
+	err := r.Database.DB.
 		Model(&models.Brand{}).
 		Where("id = ? and archived_at is null", brandId).
 		Update("archived_at", time.Now()).
@@ -157,16 +162,16 @@ func DeleteBrand(brandId uuid.UUID) error {
 	return err
 }
 
-func UpdateProduct(productId uuid.UUID, productName string, modelName string, returnDays int, warranty int, wireless bool) error {
+func (r *repository) updateProduct(productId string, productDetails *models.Product) error {
 	product := models.Product{
-		ProductName: productName,
-		ModelName:   modelName,
-		Return:      returnDays,
-		Warranty:    warranty,
-		Wireless:    wireless,
+		ProductName: productDetails.ProductName,
+		ModelName:   productDetails.ModelName,
+		Return:      productDetails.Return,
+		Warranty:    productDetails.Warranty,
+		Wireless:    productDetails.Wireless,
 		UpdatedAt:   time.Now(),
 	}
-	err := database.Db.
+	err := r.Database.DB.
 		Model(&models.Product{}).
 		Where("id =  ?", productId).
 		Updates(&product).
@@ -174,15 +179,15 @@ func UpdateProduct(productId uuid.UUID, productName string, modelName string, re
 	return err
 }
 
-func UpdateVariant(productId uuid.UUID, variantId uuid.UUID, colour string, price int, stock int) error {
+func (r *repository) updateVariant(productId string, variantId string, variantDetails *models.Variants) error {
 	variant := models.Variants{
 		ProductId: productId,
-		Colour:    colour,
-		Price:     price,
-		Stock:     stock,
+		Colour:    variantDetails.Colour,
+		Price:     variantDetails.Price,
+		Stock:     variantDetails.Stock,
 		UpdatedAt: time.Now(),
 	}
-	err := database.Db.
+	err := r.Database.DB.
 		Model(&models.Variants{}).
 		Where("id =  ?", variantId).
 		Updates(&variant).
@@ -190,12 +195,12 @@ func UpdateVariant(productId uuid.UUID, variantId uuid.UUID, colour string, pric
 	return err
 }
 
-func UpdateCategory(categoryId uuid.UUID, categoryName string) error {
+func (r *repository) updateCategory(categoryId string, categoryName string) error {
 	category := models.Category{
 		CategoryName: categoryName,
 		UpdatedAt:    time.Now(),
 	}
-	err := database.Db.
+	err := r.Database.DB.
 		Model(&models.Category{}).
 		Where("id =  ?", categoryId).
 		Updates(&category).
@@ -203,12 +208,12 @@ func UpdateCategory(categoryId uuid.UUID, categoryName string) error {
 	return err
 }
 
-func UpdateBrand(brandId uuid.UUID, brandName string) error {
+func (r *repository) updateBrand(brandId string, brandName string) error {
 	brand := models.Brand{
 		BrandName: brandName,
 		UpdatedAt: time.Now(),
 	}
-	err := database.Db.
+	err := r.Database.DB.
 		Model(&models.Brand{}).
 		Where("id =  ?", brandId).
 		Updates(&brand).
@@ -216,9 +221,9 @@ func UpdateBrand(brandId uuid.UUID, brandName string) error {
 	return err
 }
 
-func GetAllUsers(limit int, page int) ([]models.Users, error) {
+func (r *repository) getAllUsers(limit int, page int) ([]models.Users, error) {
 	var users []models.Users
-	err := database.Db.
+	err := r.Database.DB.
 		Model(&models.Users{}).
 		Preload("Address").
 		Where("archived_at is null").
@@ -229,9 +234,9 @@ func GetAllUsers(limit int, page int) ([]models.Users, error) {
 	return users, err
 }
 
-func UsersCount() (int64, error) {
+func (r *repository) usersCount() (int64, error) {
 	var count int64
-	err := database.Db.
+	err := r.Database.DB.
 		Model(&models.Users{}).
 		Where("archived_at is null").
 		Count(&count).
@@ -239,9 +244,9 @@ func UsersCount() (int64, error) {
 	return count, err
 }
 
-func GetAllBrands(limit int, page int) ([]models.Brand, error) {
+func (r *repository) getAllBrands(limit int, page int) ([]models.Brand, error) {
 	var brands []models.Brand
-	err := database.Db.
+	err := r.Database.DB.
 		Model(&models.Brand{}).
 		Where("archived_at is null").
 		Limit(limit).
@@ -251,9 +256,9 @@ func GetAllBrands(limit int, page int) ([]models.Brand, error) {
 	return brands, err
 }
 
-func GetBrandsCount() (int64, error) {
+func (r *repository) getBrandsCount() (int64, error) {
 	var count int64
-	err := database.Db.
+	err := r.Database.DB.
 		Model(&models.Brand{}).
 		Where("archived_at is null").
 		Count(&count).
@@ -261,9 +266,9 @@ func GetBrandsCount() (int64, error) {
 	return count, err
 }
 
-func GetAllCategory(limit int, page int) ([]models.Category, error) {
+func (r *repository) getAllCategory(limit int, page int) ([]models.Category, error) {
 	var categories []models.Category
-	err := database.Db.
+	err := r.Database.DB.
 		Model(&models.Category{}).
 		Where("archived_at is null").
 		Limit(limit).
@@ -273,9 +278,9 @@ func GetAllCategory(limit int, page int) ([]models.Category, error) {
 	return categories, err
 }
 
-func GetCategoryCount() (int64, error) {
+func (r *repository) getCategoryCount() (int64, error) {
 	var count int64
-	err := database.Db.
+	err := r.Database.DB.
 		Model(&models.Category{}).
 		Where("archived_at is null").
 		Count(&count).
@@ -283,15 +288,15 @@ func GetCategoryCount() (int64, error) {
 	return count, err
 }
 
-func ChangeUserRole(userId uuid.UUID, adminId uuid.UUID) error {
-	roleId := uuid.New()
+func (r *repository) changeUserRole(userId string, adminId string) error {
+	roleId := uuid.New().String()
 	role := models.UserRole{
 		Id:        roleId,
 		UserId:    userId,
 		Role:      models.Admin,
 		CreatedBy: adminId,
 	}
-	err := database.Db.
+	err := r.Database.DB.
 		Model(&models.UserRole{}).
 		Create(&role).
 		Error

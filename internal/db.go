@@ -1,4 +1,4 @@
-package database
+package internal
 
 import (
 	"fmt"
@@ -9,37 +9,44 @@ import (
 	"gorm.io/gorm"
 )
 
-var Db *gorm.DB
+type Database struct {
+	*gorm.DB
+}
 
-func ConnectDb() {
-	err := utils.LoadEnv()
+func NewDatabase() *Database {
 	host := utils.GetEnvValue("dbHost")
 	user := utils.GetEnvValue("dbUser")
 	password := utils.GetEnvValue("dbPassword")
 	dbname := utils.GetEnvValue("dbName")
 	dbPort := utils.GetEnvValue("dbPort")
 
-	if err != nil {
-		logrus.Errorf("Environment loading error; err: %s", err.Error())
-	}
 	config := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=disable TimeZone=Asia/Shanghai", host, user, password, dbname, dbPort)
 	db, err := gorm.Open(postgres.Open(config), &gorm.Config{})
 	if err != nil {
 		logrus.Errorf("database connection failed; err: %s", err.Error())
 	}
-	Db = db
-	if err := db.Exec("CREATE TYPE role_type AS ENUM ('admin','user')").Error; err != nil {
+
+	return &Database{
+		DB: db,
+	}
+}
+
+func (database *Database) MigrateUpDb() {
+	if err := database.DB.Exec("CREATE TYPE role_type AS ENUM ('admin','user')").Error; err != nil {
 		logrus.Errorf("enum creation failed; err: %s", err)
 	}
-	if err := db.Exec("CREATE TYPE delivery_status AS ENUM ('onTheWay','delivered','canceled','return')").Error; err != nil {
+
+	if err := database.DB.Exec("CREATE TYPE delivery_status AS ENUM ('onTheWay','delivered','canceled','return')").Error; err != nil {
 		logrus.Errorf("enum creation failed; err: %s", err)
 	}
-	if err := db.AutoMigrate(&models.Users{}, &models.UserRole{}, &models.Address{}, &models.Session{}, &models.Category{}, &models.Brand{}, &models.Product{}, &models.Variants{}, &models.Offer{}, &models.Images{}, &models.VariantImages{}, &models.Orders{}, &models.ProductOrdered{}, &models.UserCart{}); err != nil {
+
+	if err := database.DB.AutoMigrate(&models.Users{}, &models.UserRole{}, &models.Address{}, &models.Session{}, &models.Category{}, &models.Brand{}, &models.Product{}, &models.Variants{}, &models.Offer{}, &models.Images{}, &models.VariantImages{}, &models.Orders{}, &models.ProductOrdered{}, &models.UserCart{}); err != nil {
 		logrus.Errorf("automigration failed; err: %s", err.Error())
 	}
 }
 
-func CloseDb() {
-	DbInstance, _ := Db.DB()
-	DbInstance.Close()
+func (database *Database) CloseDb() error {
+	DbInstance, _ := database.DB.DB()
+	err := DbInstance.Close()
+	return err
 }
